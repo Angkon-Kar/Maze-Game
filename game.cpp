@@ -682,7 +682,41 @@ int main() {
         }
 
         BeginDrawing();
-        ClearBackground(GetColor(0xF5F5F5FF)); // Lighter background
+    
+    // // Dot Background Pattern
+    // // 1. ব্যাকগ্রাউন্ডের জন্য অত্যন্ত হালকা রং
+    // ClearBackground(GetColor(0xFFFFFFFF)); // প্রায় সাদা ব্যাকগ্রাউন্ড
+    
+    // // 2. প্যাটার্নের সেটিংস:
+    // int dotSpacing = 60;
+    // int dotRadius = 3;
+    // Color dotColor = GetColor(0xE0E0E0FF); // হালকা ধূসর রং।
+
+    // for (int y = 0; y < fixedScreenHeight; y += dotSpacing) {
+    //     for (int x = 0; x < fixedScreenWidth; x += dotSpacing) {
+    //         DrawCircle(x, y, dotRadius, dotColor); 
+    //     }   
+    // }
+
+
+    // Subtle Grid Background Pattern
+    // 1. Very Light Background Color
+    ClearBackground(GetColor(0xF5F5F5FF)); 
+    // 2. Draw the Subtle Grid Pattern
+    int gridSize = 100; // Distance between grid lines (Good for projectors)
+    int lineThickness = 1; // Thin lines look better
+    Color lineColor = GetColor(0xD0D0D0AA); // A very light gray with transparency (D0D0D0)
+
+    // Vertical Lines
+    for (int x = 0; x < fixedScreenWidth; x += gridSize) {
+        DrawLineEx({(float)x, 0.0f}, {(float)x, (float)fixedScreenHeight}, (float)lineThickness, lineColor);
+    }
+
+    // Horizontal Lines
+    for (int y = 0; y < fixedScreenHeight; y += gridSize) {
+        DrawLineEx({0.0f, (float)y}, {(float)fixedScreenWidth, (float)y}, (float)lineThickness, lineColor);
+    }
+
 
         switch (currentScreen) {
             case HOME: {
