@@ -51,9 +51,10 @@ Include visuals to enhance presentation and documentation.
 - **Home Menu / Title Screen**  
   ![Main Menu](assets/Home.png)
 
-- **Gameplay Screenshots**  
+- **Level's**  
   ![Gameplay](assets/Level.png)
-  
+
+ - **Gameplay**  
   ![Gameplay](assets/Easy.png)
 
   ![Gameplay](assets/1.png)
@@ -92,14 +93,11 @@ g++ main.cpp -o maze_game -lraylib -lGLESv2
 
 ## 📁 Project Structure
 ```
-Maze-Game/
-├── assets/
-│   ├── main_menu.jpg
-│   ├── medium_level.png
-│   └── exit_pulse.gif
-├── main.cpp
+Maze-Game
+├── assets
+│   ├── Images
 ├── README.md
-└── game.exe
+└── game.cpp
 ```
 
 ## 📦 Dependencies
