@@ -536,6 +536,7 @@ void setupGame(int levelIdx, EntranceExitStrategy strategy) {
     // 3. Reset Game Stats
     totalTime = 0.0f;
     totalMoves = 0;
+    
 }
 
 void drawMaze() {
