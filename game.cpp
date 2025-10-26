@@ -536,7 +536,7 @@ void setupGame(int levelIdx, EntranceExitStrategy strategy) {
     // 3. Reset Game Stats
     totalTime = 0.0f;
     totalMoves = 0;
-    
+
 }
 
 void drawMaze() {
@@ -551,25 +551,51 @@ void drawMaze() {
                 DrawRectangle(tile.x, tile.y, TILE_SIZE, 2, GetColor(0x606060FF)); // Top edge highlight
                 DrawRectangle(tile.x, tile.y, 2, TILE_SIZE, GetColor(0x606060FF)); // Left edge highlight
                 } 
-                else if (maze[i][j] == 'E') {
-                // ⭐ Exit Sign Pulsing Logic
-                float pulseFactor = sin(pulseTimer) * 0.5f + 0.5f; // Goes from 0.0 (dim) to 1.0 (bright)
+            //     else if (maze[i][j] == 'E') {
+            //     // ⭐ Exit Sign Pulsing Logic
+            //     float pulseFactor = sin(pulseTimer) * 0.5f + 0.5f; // Goes from 0.0 (dim) to 1.0 (bright)
 
-                // Blend between LIME (base color) and WHITE (highlight color)
-                Color baseColor = LIME;
+            //     // Blend between LIME (base color) and WHITE (highlight color)
+            //     Color baseColor = LIME;
                 
-                // ম্যানুয়ালি কালার ব্লেন্ড করা
-                Color finalColor;
-                finalColor.r = (unsigned char)(baseColor.r * (1.0f - pulseFactor) + WHITE.r * pulseFactor);
-                finalColor.g = (unsigned char)(baseColor.g * (1.0f - pulseFactor) + WHITE.g * pulseFactor);
-                finalColor.b = (unsigned char)(baseColor.b * (1.0f - pulseFactor) + WHITE.b * pulseFactor);
-                finalColor.a = 255;
+            //     // ম্যানুয়ালি কালার ব্লেন্ড করা
+            //     Color finalColor;
+            //     finalColor.r = (unsigned char)(baseColor.r * (1.0f - pulseFactor) + WHITE.r * pulseFactor);
+            //     finalColor.g = (unsigned char)(baseColor.g * (1.0f - pulseFactor) + WHITE.g * pulseFactor);
+            //     finalColor.b = (unsigned char)(baseColor.b * (1.0f - pulseFactor) + WHITE.b * pulseFactor);
+            //     finalColor.a = 255;
                 
-                Vector2 triA = { tile.x + TILE_SIZE / 2, tile.y + TILE_SIZE / 4 };
-                Vector2 triB = { tile.x + TILE_SIZE / 4, tile.y + TILE_SIZE - TILE_SIZE / 4 };
-                Vector2 triC = { tile.x + TILE_SIZE - TILE_SIZE / 4, tile.y + TILE_SIZE - TILE_SIZE / 4 };
-                DrawTriangle(triA, triB, triC, finalColor); // ⭐ finalColor ব্যবহার করা হয়েছে
-            }
+            //     Vector2 triA = { tile.x + TILE_SIZE / 2, tile.y + TILE_SIZE / 4 };
+            //     Vector2 triB = { tile.x + TILE_SIZE / 4, tile.y + TILE_SIZE - TILE_SIZE / 4 };
+            //     Vector2 triC = { tile.x + TILE_SIZE - TILE_SIZE / 4, tile.y + TILE_SIZE - TILE_SIZE / 4 };
+            //     DrawTriangle(triA, triB, triC, finalColor); // ⭐ finalColor ব্যবহার করা হয়েছে
+            // }
+
+            else if (maze[i][j] == 'E') {
+            // ⭐⭐ Color and Brightness Pulsing Logic (Using HSV) ⭐⭐
+            
+            float pulseFactor = sin(pulseTimer) * 0.5f + 0.5f; // Goes from 0.0 (dim) to 1.0 (bright)
+
+            // 1. Hue Shifting: Time-based color change (from Green to Yellow/Cyan)
+            // pulseTimer ব্যবহার করে Hue পরিবর্তন করা হচ্ছে
+            float hue = 120.0f + sin(pulseTimer * 0.5f) * 60.0f; // 120 (Green) থেকে 60 (Yellow) পর্যন্ত
+            
+            // 2. Value Pulsing: Brightness change
+            float value = 0.8f + pulseFactor * 0.2f; // 80% থেকে 100% উজ্জ্বলতা
+
+            // HSV থেকে Color এ রূপান্তর
+            Color finalColor = ColorFromHSV(hue, 1.0f, value);
+            
+            // Draw the Exit Triangle
+            Vector2 tile = { (float)(j * TILE_SIZE + mazeOffsetX), (float)(i * TILE_SIZE + mazeOffsetY) };
+            
+            Vector2 triA = { tile.x + TILE_SIZE / 2, tile.y + TILE_SIZE / 4 };
+            Vector2 triB = { tile.x + TILE_SIZE / 4, tile.y + TILE_SIZE - TILE_SIZE / 4 };
+            Vector2 triC = { tile.x + TILE_SIZE - TILE_SIZE / 4, tile.y + TILE_SIZE - TILE_SIZE / 4 };
+            
+            DrawTriangle(triA, triB, triC, finalColor); 
+        }
+
         }
     }
 }
@@ -687,10 +713,14 @@ int main() {
                 playerRenderX = playerRenderX + ((float)playerX - playerRenderX) * playerMoveSpeed * dt;
                 playerRenderY = playerRenderY + ((float)playerY - playerRenderY) * playerMoveSpeed * dt;
 
-                // ✨ 2. Exit Sign Pulse Update
-                pulseTimer += dt * 4.0f; // 4.0f হচ্ছে পালসের গতি
-                if (pulseTimer > PI * 2) pulseTimer -= PI * 2; // Keep it within 0 to 2*PI
+                // // ✨ 2. Exit Sign Pulse Update
+                // pulseTimer += dt * 4.0f; // 4.0f হচ্ছে পালসের গতি
+                // if (pulseTimer > PI * 2) pulseTimer -= PI * 2; // Keep it within 0 to 2*PI
 
+                // ⭐⭐ Exit Sign Pulse Update - Speed Increased to 8.0f ⭐⭐
+                pulseTimer += dt * 8.0f; // 8.0f মানে এখন দ্বিগুণ দ্রুত পালস হবে
+                if (pulseTimer > PI * 2) pulseTimer -= PI * 2;
+                
                 if (totalTime > levelTimeLimits[currentLevelIndex]) {
                     currentScreen = GAMEOVER;
                 }
