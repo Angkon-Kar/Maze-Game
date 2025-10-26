@@ -39,7 +39,11 @@ int exitX, exitY;
 float totalTime = 0.0f; 
 int totalMoves = 0;   
 int idealMoves = 0;   
-float accuracy = 0.0f; 
+float accuracy = 0.0f;
+float playerRenderX;
+float playerRenderY;
+const float playerMoveSpeed = 10.0f; // প্লেয়ারের স্মুথ মুভমেন্টের গতি (adjust as needed)
+float pulseTimer = 0.0f;            // এগজিট সাইন পালসিং এর জন্য টাইমার
 
 int currentLevelIndex = 0; 
 const char* levelNames[] = {"Easy", "Medium", "Hard", "Very Hard"};
@@ -521,6 +525,14 @@ void setupGame(int levelIdx, EntranceExitStrategy strategy) {
         idealMoves = 0;
     }
 
+    // 1. Player Render Position Initialize for Smooth Movement
+    playerRenderX = (float)playerX;
+    playerRenderY = (float)playerY;
+
+    // 2. Pulse Timer Initialize
+    pulseTimer = 0.0f;
+
+    // 3. Reset Game Stats
     totalTime = 0.0f;
     totalMoves = 0;
 }
@@ -536,12 +548,25 @@ void drawMaze() {
                 // Draw a lighter highlight for a simple 3D effect
                 DrawRectangle(tile.x, tile.y, TILE_SIZE, 2, GetColor(0x606060FF)); // Top edge highlight
                 DrawRectangle(tile.x, tile.y, 2, TILE_SIZE, GetColor(0x606060FF)); // Left edge highlight
-            } else if (maze[i][j] == 'E') {
-                // Draw a simple triangle for the exit
+                } 
+                else if (maze[i][j] == 'E') {
+                // ⭐ Exit Sign Pulsing Logic
+                float pulseFactor = sin(pulseTimer) * 0.5f + 0.5f; // Goes from 0.0 (dim) to 1.0 (bright)
+
+                // Blend between LIME (base color) and WHITE (highlight color)
+                Color baseColor = LIME;
+                
+                // ম্যানুয়ালি কালার ব্লেন্ড করা
+                Color finalColor;
+                finalColor.r = (unsigned char)(baseColor.r * (1.0f - pulseFactor) + WHITE.r * pulseFactor);
+                finalColor.g = (unsigned char)(baseColor.g * (1.0f - pulseFactor) + WHITE.g * pulseFactor);
+                finalColor.b = (unsigned char)(baseColor.b * (1.0f - pulseFactor) + WHITE.b * pulseFactor);
+                finalColor.a = 255;
+                
                 Vector2 triA = { tile.x + TILE_SIZE / 2, tile.y + TILE_SIZE / 4 };
                 Vector2 triB = { tile.x + TILE_SIZE / 4, tile.y + TILE_SIZE - TILE_SIZE / 4 };
                 Vector2 triC = { tile.x + TILE_SIZE - TILE_SIZE / 4, tile.y + TILE_SIZE - TILE_SIZE / 4 };
-                DrawTriangle(triA, triB, triC, LIME);
+                DrawTriangle(triA, triB, triC, finalColor); // ⭐ finalColor ব্যবহার করা হয়েছে
             }
         }
     }
@@ -648,24 +673,51 @@ int main() {
                     }
                 }
             } break;
+            // main() ফাংশনের ভেতরে, case GAMEPLAY: এর লজিক আপডেট করুন
             case GAMEPLAY: {
                 totalTime += GetFrameTime();
                 handleGameplayInput();
                 
+                float dt = GetFrameTime();
+
+                // 🚀 1. Player Smooth Movement Update (EASING)
+                // playerRenderX/Y কে টার্গেট পজিশন playerX/Y এর দিকে মসৃণভাবে মুভ করাবে
+                playerRenderX = playerRenderX + ((float)playerX - playerRenderX) * playerMoveSpeed * dt;
+                playerRenderY = playerRenderY + ((float)playerY - playerRenderY) * playerMoveSpeed * dt;
+
+                // ✨ 2. Exit Sign Pulse Update
+                pulseTimer += dt * 4.0f; // 4.0f হচ্ছে পালসের গতি
+                if (pulseTimer > PI * 2) pulseTimer -= PI * 2; // Keep it within 0 to 2*PI
+
                 if (totalTime > levelTimeLimits[currentLevelIndex]) {
                     currentScreen = GAMEOVER;
                 }
-                                                    
+                        
+                // --- INSIDE case GAMEPLAY: ---
                 if (checkWinCondition()) {
-                    accuracy = 0.0f;
-                    if (totalMoves > 0 && idealMoves > 0) {
+                    
+                    // ⭐ Step 1: Default to 0.0f in case of no path or no moves.
+                    accuracy = 0.0f; 
+
+                    if (idealMoves > 0 && totalMoves > 0) {
+                        // ⭐ Case A: Standard Calculation (Both ideal and actual moves > 0)
                         accuracy = (static_cast<float>(idealMoves) / totalMoves) * 100.0f;
-                        if (accuracy > 100.0f) accuracy = 100.0f;
-                    } else if (totalMoves == 0 && idealMoves == 0) {
-                        accuracy = 100.0f;
-                    } else if (totalMoves > 0 && idealMoves == 0) {
-                        accuracy = 0.0f;
+                        
+                    } else if (idealMoves == 0) {
+                        // ⭐ Case B: No path found (idealMoves was -1 or 0)
+                        // If idealMoves is 0, the maze probably had an issue, so accuracy is low/zero.
+                        accuracy = 0.0f; 
+                        
+                    } else if (totalMoves == 0 && idealMoves > 0) {
+                        // ⭐ Case C: Player won in 0 moves (highly unlikely unless start=end)
+                        accuracy = 100.0f; 
                     }
+                    
+                    // Cap accuracy at 100% (in case player somehow takes fewer than ideal moves)
+                    if (accuracy > 100.0f) {
+                        accuracy = 100.0f;
+                    }
+
                     currentScreen = WIN;
                 }
             } break;
@@ -792,10 +844,10 @@ int main() {
                 drawMaze();
                 
                 // Draw player as a circle
-                DrawCircle((float)(playerX * TILE_SIZE + mazeOffsetX + TILE_SIZE / 2), 
-                           (float)(playerY * TILE_SIZE + mazeOffsetY + TILE_SIZE / 2), 
-                           TILE_SIZE / 2 - 2, BLUE); // Player is blue now
-                
+                DrawCircle((float)(playerRenderX * TILE_SIZE + mazeOffsetX + TILE_SIZE / 2), // ⭐ এখানে পরিবর্তন
+                        (float)(playerRenderY * TILE_SIZE + mazeOffsetY + TILE_SIZE / 2), // ⭐ এখানে পরিবর্তন
+                        TILE_SIZE / 2 - 2, BLUE);
+
                 Rectangle hudBackground = { 0, 0, (float)GetScreenWidth(), 70 };
                 DrawRectangleRec(hudBackground, GetColor(0xE0E0E0FF)); // Lighter gray HUD background
                 
