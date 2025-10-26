@@ -425,10 +425,10 @@ void setupGame(int levelIdx, EntranceExitStrategy strategy) {
     
     // Set maze dimensions based on level
     switch (levelIdx) {
-        case 0: mazeWidth = 31; mazeHeight = 15; break;       // Easy
-        case 1: mazeWidth = 41; mazeHeight = 21; break;       // Medium
-        case 2: mazeWidth = 51; mazeHeight = 25; break;       // Hard
-        case 3: mazeWidth = 61; mazeHeight = 31; break;       // Very Hard
+        case 0: mazeWidth = 31; mazeHeight = 15; break;      // Easy
+        case 1: mazeWidth = 41; mazeHeight = 21; break;      // Medium
+        case 2: mazeWidth = 51; mazeHeight = 25; break;      // Hard
+        case 3: mazeWidth = 61; mazeHeight = 31; break;      // Very Hard
         default: mazeWidth = 51; mazeHeight = 25; break; 
     }
     
@@ -442,14 +442,15 @@ void setupGame(int levelIdx, EntranceExitStrategy strategy) {
     if (mazeOffsetX < 0) mazeOffsetX = 0;
     if (mazeOffsetY < 0) mazeOffsetY = 0;
     
-    // Generate maze using the appropriate algorithm
+    // ⭐⭐ Generate maze using the appropriate algorithm (EASY/MEDIUM SWAPPED) ⭐⭐
     switch (levelIdx) {
-        case 0: generateMazeDFS(1, 1); break;
-        case 1: generateMazeBFS(1, 1); break;
+        case 0: generateMazeBFS(1, 1); break;   // Now EASY (using the less complex BFS structure)
+        case 1: generateMazeDFS(1, 1); break;   // Now MEDIUM (using the more complex DFS structure)
         case 2: generateMazeKruskal(); break;
         case 3: generateMazePrim(1, 1); break;
         default: generateMazeDFS(1, 1); break;
     }
+    // ⭐⭐ END SWAP ⭐⭐
 
     // --- Player and Exit Placement based on Strategy ---
     switch (strategy) {
